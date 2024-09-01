@@ -1,0 +1,39 @@
+# @format
+
+# Contoh file cloudbuild.yaml
+# File ini digunakan untuk membangun image Docker dan mendeploy ke Google Container Registry.
+
+steps:
+  # Step 1: Build Docker image
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/$PROJECT_ID/my-app:$COMMIT_SHA", "."]
+
+  # Step 2: Push Docker image ke Google Container Registry
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "gcr.io/$PROJECT_ID/my-app:$COMMIT_SHA"]
+
+  # Step 3: Deploy aplikasi ke Google Kubernetes Engine (opsional)
+  - name: "gcr.io/cloud-builders/kubectl"
+    args:
+      - "set"
+      - "image"
+      - "deployment/my-deployment"
+      - "my-container=gcr.io/$PROJECT_ID/my-app:$COMMIT_SHA"
+
+# Artifacts yang dihasilkan
+images:
+  - "gcr.io/$PROJECT_ID/my-app:$COMMIT_SHA"
+
+# Substitusi variabel yang bisa digunakan di dalam build
+substitutions:
+  _CUSTOM_VAR: "value"
+
+# Opsi timeout (durasi maksimal build berlangsung)
+timeout: "1200s" # 20 minutes
+
+# Logs bucket (opsional)
+logsBucket: "gs://my-logs-bucket"
+
+# Opsi notifikasi untuk build (opsional)
+options:
+  logging: CLOUD_LOGGING_ONLY
